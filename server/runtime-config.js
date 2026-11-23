@@ -308,6 +308,7 @@ module.exports = {
   boolEnv,
   paymentConfig,
   adminConfig,
+  supabasePublicConfig,
   superAdminStoreState,
   saasAdminStoreState,
   isStrongSecret,

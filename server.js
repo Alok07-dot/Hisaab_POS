@@ -31,15 +31,24 @@ const SESSION_TTL_MS = 60 * 60 * 1000; // active session lives up to 1 hour
 
 // Validate required/sensitive runtime configuration in production before
 // initializing services. (Development/test keep existing local defaults.)
+// Vercel runs this file as a serverless function. A hard exit there turns every
+// request into "500 FUNCTION_INVOCATION_FAILED", including the POS UI. Keep the
+// fail-fast behaviour for long-running self-hosted servers, but on Vercel boot
+// the POS/config routes and skip the admin/payment surfaces until the project
+// has a complete, secure production configuration.
+const IS_VERCEL = !!process.env.VERCEL;
+let runtimeConfigValid = true;
 try {
   runtimeConfig.validateForStartup();
 } catch (err) {
   console.error(runtimeConfig.formatValidationError(err));
-  process.exit(1);
+  if (!IS_VERCEL) process.exit(1);
+  runtimeConfigValid = false;
 }
 
 // ─── APP SETUP ───────────────────────────────────────────────
 const app    = express();
+const PUBLIC_DIR = path.join(__dirname, 'public');
 const server = http.createServer(app);
 const io     = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] },
@@ -82,7 +91,7 @@ function initHttps() {
   }
 }
 
-initHttps();
+if (!IS_VERCEL) initHttps();
 
 // ─── RUNTIME PUBLIC CLIENT CONFIG (env-driven, public values only) ─────
 // Prefer environment-provided Supabase public config (URL + anon key) when set.
@@ -104,6 +113,15 @@ app.get('/config.js', (req, res, next) => {
   } catch (e) {
     // Fall through to static/local config on unexpected errors.
   }
+  // Local development fallback: serve the git-ignored ./config.js when present.
+  try {
+    const localConfig = path.join(__dirname, 'config.js');
+    if (fs.existsSync(localConfig)) {
+      res.type('application/javascript');
+      res.set('Cache-Control', 'no-store');
+      return res.sendFile(localConfig);
+    }
+  } catch (e) {}
   return next();
 });
 
@@ -158,23 +176,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from project root (after sensitive-path block)
-app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
+// Serve the public client application (after sensitive-path block).
+// Vercel serves this folder from its CDN; express.static keeps the same layout
+// working when the app is run locally with `node server.js`.
+app.use(express.static(PUBLIC_DIR, { dotfiles: 'deny' }));
 
 // ─── SAAS: plans, subscriptions, billing, usage & admin ───────
 // Mounted before the global JSON parser because the payment
 // webhook needs the raw request body for signature verification.
-require('./saas/index.js')(app);
+// On Vercel without a complete production configuration, these routes are
+// skipped instead of crashing the whole function: the data stores deliberately
+// refuse to seed default credentials in production.
+if (runtimeConfigValid) {
+  require('./saas/index.js')(app);
+} else {
+  console.warn('[SAAS] Billing/admin API disabled: production configuration is incomplete. Set the required environment variables and redeploy.');
+}
 
 // ─── SUPER ADMIN (additive, isolated from POS UI) ───────────────
 // Separate API routes under /super-admin/v1 and SPA at /super-admin.
 // Does not modify any Customer POS routes or static behavior.
-const superAdminRouter = express.Router();
-superAdminRouter.use(express.json({ limit: '10mb' }));
-require('./saas/routes/super-admin.routes.js')(superAdminRouter);
-app.use('/api', superAdminRouter);
+if (runtimeConfigValid) {
+  const superAdminRouter = express.Router();
+  superAdminRouter.use(express.json({ limit: '10mb' }));
+  require('./saas/routes/super-admin.routes.js')(superAdminRouter);
+  app.use('/api', superAdminRouter);
+}
 
-require('./server/mount-super-admin')(app, __dirname);
+require('./server/mount-super-admin')(app, PUBLIC_DIR);
 
 // 10 MB: WhatsApp PDF invoices are sent as base64 in the JSON body
 app.use(express.json({ limit: '10mb' }));
@@ -760,32 +789,40 @@ io.on('connection', (socket) => {
 });
 
 // ─── PERIODIC CLEANUP ─────────────────────────────────────────
-setInterval(() => {
-  const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now - session.createdAt > SESSION_TTL_MS) {
-      if (session.mobileSocketId) {
-        io.to(session.mobileSocketId).emit('session-ended', { message: 'Session expired.' });
+if (!IS_VERCEL) {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [token, session] of sessions.entries()) {
+      if (now - session.createdAt > SESSION_TTL_MS) {
+        if (session.mobileSocketId) {
+          io.to(session.mobileSocketId).emit('session-ended', { message: 'Session expired.' });
+        }
+        sessions.delete(token);
+        console.log('[CLEANUP] Expired session: ' + session.sessionId);
       }
-      sessions.delete(token);
-      console.log('[CLEANUP] Expired session: ' + session.sessionId);
     }
-  }
-}, 10 * 60 * 1000);
+  }, 10 * 60 * 1000);
+}
 
 // ─── START SERVER ─────────────────────────────────────────────
-server.listen(PORT, '0.0.0.0', () => {
-  const lanIp = getLanIp();
-  console.log('\n+-----------------------------------------------+');
-  console.log('|      HISAAB POS - Server Running              |');
-  console.log('+-----------------------------------------------+');
-  console.log('|  Desktop POS : http://localhost:' + PORT + '           |');
-  console.log('|  LAN Access  : http://' + lanIp + ':' + PORT + '  |');
-  if (httpsEnabled) {
-    console.log('|  Mobile URL  : https://' + lanIp + ':' + HTTPS_PORT + '/scanner.html |');
-    console.log('|  (camera: accept the self-signed cert)        |');
-  } else {
-    console.log('|  Mobile URL  : http://' + lanIp + ':' + PORT + '/scanner.html |');
-  }
-  console.log('+-----------------------------------------------+\n');
-});
+// Vercel imports this module and uses the exported Express app; binding a port
+// there is unnecessary. Local `node server.js` keeps the original behaviour.
+if (!IS_VERCEL) {
+  server.listen(PORT, '0.0.0.0', () => {
+    const lanIp = getLanIp();
+    console.log('\n+-----------------------------------------------+');
+    console.log('|      HISAAB POS - Server Running              |');
+    console.log('+-----------------------------------------------+');
+    console.log('|  Desktop POS : http://localhost:' + PORT + '           |');
+    console.log('|  LAN Access  : http://' + lanIp + ':' + PORT + '  |');
+    if (httpsEnabled) {
+      console.log('|  Mobile URL  : https://' + lanIp + ':' + HTTPS_PORT + '/scanner.html |');
+      console.log('|  (camera: accept the self-signed cert)        |');
+    } else {
+      console.log('|  Mobile URL  : http://' + lanIp + ':' + PORT + '/scanner.html |');
+    }
+    console.log('+-----------------------------------------------+\n');
+  });
+}
+
+module.exports = app;
