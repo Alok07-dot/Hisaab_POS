@@ -1,0 +1,64 @@
+# Environment and secrets (never commit real secrets or environment-specific credentials)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.staging
+.env.staging.local
+.env.production
+.env.production.local
+
+# Local/runtime config overrides
+config.js
+config.local.js
+config.*.local.js
+
+# Certificates and private keys
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Supabase secrets & local config
+.supabase/
+supabase/.temp/
+
+# Node & dependencies (for future backend/build)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs & caches
+dist/
+build/
+.cache/
+.temp/
+out/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# Logs & Database files
+*.log
+*.sqlite
+*.db
+
+# Local runtime data store (accounts, subscriptions, audit logs; never commit)
+/data/
+
+# Vercel CLI metadata
+.vercel/

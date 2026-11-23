@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "id": "adm_1227134a374b66cdcf89",
+      "email": "owner@hisaab.local",
+      "name": "Platform Owner",
+      "role": "owner",
+      "status": "active",
+      "passwordHash": "scrypt$033f023e1ddf9715f088f737d00e6f94$7d3a9942e62d9b8fe283423e4d9be1ed4af890325b37a3621d29a2845f4415a4b0f78c4f479b7b98fcdb5dc3811e3a2c2e76a8406b9d6f7612403e612f225e78",
+      "createdAt": "2026-11-12T13:46:23.253Z",
+      "updatedAt": "2026-11-12T13:46:23.253Z",
+      "lastLoginAt": "2026-11-14T17:26:11.959Z"
+    },
+    {
+      "id": "adm_d203a784448b5488ded7",
+      "email": "admin@hisaab.local",
+      "name": "Platform Owner",
+      "role": "owner",
+      "status": "active",
+      "passwordHash": "scrypt$78d54c77429778564585466ba709e386$a50308264bcafe3abb058040f53cfdfaba8f300717c9105a924638fb166945de46b75599e1f8eeada11c248d8ff880698afbeb12e44549804f5953b8395a783a",
+      "createdAt": "2026-11-14T17:10:38.393Z",
+      "updatedAt": "2026-11-14T17:10:38.393Z",
+      "lastLoginAt": null
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sas_dfdbf4a62da04dbf1b3a",
+      "userId": "adm_1227134a374b66cdcf89",
+      "tokenHash": "45e783548bda9fe8dc4ffe7720684bf25afa721e021026a9ae37f1007f154feb",
+      "createdAt": 1794677171959,
+      "expiresAt": 1794720371959,
+      "lastSeenAt": 1794677171977
+    }
+  ],
+  "invitations": [],
+  "updatedAt": "2026-11-14T17:26:11.977Z"
+}

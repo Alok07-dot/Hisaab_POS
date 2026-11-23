@@ -1,0 +1,40 @@
+-- ════════════════════════════════════════════════════════════════════════
+-- DEPRECATED — DO NOT RUN THIS FILE
+-- ════════════════════════════════════════════════════════════════════════
+--
+-- This was the old single-tenant development schema. It stored whole records
+-- as JSON blobs in `hisaab_*` tables and allowed the public anon key to read
+-- and write everything. That is unsafe for a multi-tenant SaaS: any visitor
+-- could read every business's data.
+--
+-- It has been replaced by:
+--
+--     supabase/migrations/0001_core_tenancy.sql
+--
+-- which defines a real multi-tenant schema and Row Level Security:
+--
+--   auth.users → profiles
+--   organizations → org_members, stores
+--   every business table carries org_id and is readable only by members of
+--   that organization, enforced by Postgres policies (not the frontend).
+--
+-- HOW TO SET UP THE DATABASE NOW
+--   1. Open SUPABASE-SETUP.md in this folder and follow it.
+--   2. Run supabase/migrations/0001_core_tenancy.sql in the SQL Editor.
+--
+-- IF YOU ALREADY RAN THIS OLD FILE (fresh project, no real data)
+--   Drop the legacy tables so nothing permissive stays reachable:
+--
+--     drop table if exists public.hisaab_settings  cascade;
+--     drop table if exists public.hisaab_returns   cascade;
+--     drop table if exists public.hisaab_damages   cascade;
+--     drop table if exists public.hisaab_sales     cascade;
+--     drop table if exists public.hisaab_customers cascade;
+--     drop table if exists public.hisaab_products  cascade;
+--
+--   Then run the migration above. If the old tables hold data you care
+--   about, export it first — the new schema has a different shape (typed
+--   columns, org_id, RLS), so it is not a drop-in copy.
+--
+-- This file is kept only so old links do not 404. It intentionally contains
+-- no executable SQL.

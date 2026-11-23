@@ -1,0 +1,64 @@
+[
+  {
+    "id": "ht_13089aac264c",
+    "created_at": "2026-11-13T14:00:11.557Z",
+    "updated_at": "2026-11-13T14:03:05.867Z",
+    "created_by": "owner@hisaab.local",
+    "title": "Add Product",
+    "description": "",
+    "youtube_url": "https://www.youtube.com/watch?v=PlUcFP072Wc",
+    "youtube_video_id": "PlUcFP072Wc",
+    "thumbnail_url": "/api/help-tutorial-thumbnails/ht_4cd03853c4194423.png",
+    "thumbnail_type": "custom",
+    "category": "Products",
+    "language": "Hindi",
+    "duration": "",
+    "keywords": [],
+    "status": "published",
+    "display_order": 0
+  },
+  {
+    "id": "ht_d9d6f4012288",
+    "created_at": "2026-11-13T14:06:34.666Z",
+    "updated_at": "2026-11-13T14:07:05.081Z",
+    "created_by": "owner@hisaab.local",
+    "title": "Add New Customer direct on POS.",
+    "description": "",
+    "youtube_url": "https://www.youtube.com/watch?v=PlUcFP072Wc",
+    "youtube_video_id": "PlUcFP072Wc",
+    "thumbnail_url": "/api/help-tutorial-thumbnails/ht_a62123af7258b72c.png",
+    "thumbnail_type": "custom",
+    "category": "Customers",
+    "language": "Hindi",
+    "duration": "",
+    "keywords": [
+      "Customer",
+      "Add customer"
+    ],
+    "status": "published",
+    "display_order": 0
+  },
+  {
+    "id": "ht_d3b74419f043",
+    "created_at": "2026-11-13T14:09:55.930Z",
+    "updated_at": "2026-11-13T14:09:55.930Z",
+    "created_by": "owner@hisaab.local",
+    "title": "Create bill using POS",
+    "description": "",
+    "youtube_url": "https://www.youtube.com/watch?v=PlUcFP072Wc",
+    "youtube_video_id": "PlUcFP072Wc",
+    "thumbnail_url": "/api/help-tutorial-thumbnails/ht_d45f78cf10451e77.png",
+    "thumbnail_type": "custom",
+    "category": "POS & Sales",
+    "language": "Hindi",
+    "duration": "",
+    "keywords": [
+      "POS",
+      "Billing",
+      "Create Bill",
+      "Receipt"
+    ],
+    "status": "published",
+    "display_order": 2
+  }
+]
